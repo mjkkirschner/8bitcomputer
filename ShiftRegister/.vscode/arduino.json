@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:mega",
+    "sketch": "ShiftRegister.ino",
+    "port": "/dev/cu.usbmodem1461",
+    "configuration": "cpu=atmega2560"
+}
