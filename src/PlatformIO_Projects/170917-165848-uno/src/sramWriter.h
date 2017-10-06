@@ -18,6 +18,7 @@ class BYTE1_SRAM
                void printRamContents(int);
                void setAddressLines(int);
                void setDataLines(int);
+               void writeData(int,int);
 
   private:
     uint8_t _msbAddress;

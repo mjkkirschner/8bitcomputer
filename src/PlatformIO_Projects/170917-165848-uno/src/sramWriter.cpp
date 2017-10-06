@@ -120,9 +120,9 @@ void BYTE1_SRAM::writeData(int address, int data)
     setDataLines(data);
     delayMicroseconds(5);
     //toggle the write enable low then HIGH
-    digitalWrite(PROGRAMMER_WRITE_ENABLE, LOW);
+    digitalWrite(writeEnablePin, LOW);
     delayMicroseconds(5);
-    digitalWrite(PROGRAMMER_WRITE_ENABLE, HIGH);
+    digitalWrite(writeEnablePin, HIGH);
     delayMicroseconds(5);
 
     Serial.println("******************");
