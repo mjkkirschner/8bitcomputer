@@ -13,7 +13,7 @@ class BYTE1_SRAM
                uint8_t MSB_DATA_PIN,
                uint8_t LSB_DATA_PIN,
                uint8_t RUNMODE_PIN,
-               uint8_t WRITE_ENABLE_PIN);
+               uint8_t WRITE_ENABLE_PIN,bool DEBUG);
                byte readData();
                void printRamContents(int);
                void setAddressLines(int);
@@ -27,5 +27,6 @@ class BYTE1_SRAM
     uint8_t _lsbData;
     uint8_t runmodePin;
     uint8_t writeEnablePin;
+    bool _debug;
 };
 #endif

@@ -6,7 +6,7 @@ BYTE1_SRAM::BYTE1_SRAM(uint8_t MSB_ADDRESS_PIN,
                        uint8_t MSB_DATA_PIN,
                        uint8_t LSB_DATA_PIN,
                        uint8_t RUNMODE_PIN,
-                       uint8_t WRITE_ENABLE_PIN)
+                       uint8_t WRITE_ENABLE_PIN, bool DEBUG)
 {
     _msbAddress = MSB_ADDRESS_PIN;
     _lsbAddress = LSB_ADDRESS_PIN;
@@ -14,32 +14,25 @@ BYTE1_SRAM::BYTE1_SRAM(uint8_t MSB_ADDRESS_PIN,
     _lsbData = LSB_DATA_PIN;
     runmodePin = RUNMODE_PIN;
     writeEnablePin = WRITE_ENABLE_PIN;
+    _debug = DEBUG;
 
     pinMode(runmodePin, OUTPUT);
     pinMode(writeEnablePin, OUTPUT);
 
-
-    //lets set the runMode to HIGH by default, this should put the
-    //computer in control, then we'll only enable it during operations.
+    //start under computer control
     digitalWrite(runmodePin, HIGH);
     //active low so this puts the chip into read mode.
     digitalWrite(writeEnablePin, HIGH);
 
-    Serial.begin(57600);
-
-    Serial.println("set all address pins to output");
-    //TODO offset or something?... it skips by two now since we use the mega pins...
     for (int pin = _msbAddress; pin <= _lsbAddress; pin += 2)
     {
         pinMode(pin, OUTPUT);
     }
 
-    Serial.println("set all data pins to output");
     for (int pin = _msbData; pin <= _lsbData; pin += 2)
     {
         pinMode(pin, OUTPUT);
     }
-    Serial.println("SRAM OBJECT READY...");
 }
 
 /**
@@ -49,18 +42,23 @@ byte BYTE1_SRAM::readData()
 {
     digitalWrite(runmodePin, LOW);
     digitalWrite(writeEnablePin, HIGH);
-    delayMicroseconds(10);
+    delayMicroseconds(5);
     byte data = 0;
     for (int pin = _msbData; pin <= _lsbData; pin += 2)
     {
-        Serial.println("pin:");
-        Serial.print(pin);
-        Serial.print("is:");
-        Serial.println(digitalRead(pin));
+        //Serial.println("pin:");
+        //Serial.print(pin);
+        //Serial.print("is:");
+        //Serial.println(digitalRead(pin));
         data = (data << 1) + digitalRead(pin);
     }
-    digitalWrite(runmodePin, HIGH);
-    delayMicroseconds(10);
+    if (_debug)
+    {
+        Serial.println("******************");
+        Serial.println("READ COMPLETE");
+        Serial.println(data);
+    }
+
     return data;
 }
 
@@ -71,19 +69,25 @@ byte BYTE1_SRAM::readData()
 void BYTE1_SRAM::printRamContents(int maxAddressToRead)
 {
     //make sure we are not writing!
+    digitalWrite(runmodePin, LOW);
     digitalWrite(writeEnablePin, HIGH);
     delayMicroseconds(5);
     for (int address = 0; address < maxAddressToRead; address++)
     {
-        Serial.println("READING ******************");
-        Serial.println("setting address lines for address");
-        Serial.println(address);
-
+        if (_debug)
+        {
+            Serial.println("READING ******************");
+            Serial.println("setting address lines for address");
+            Serial.println(address);
+        }
         setAddressLines(address);
         delayMicroseconds(5);
-        //read all the data lines
-        Serial.println("data is:");
-        Serial.println(readData());
+        if (_debug)
+        {
+            //read all the data lines
+            Serial.println("data is:");
+            Serial.println(readData());
+        }
         delayMicroseconds(5);
     }
 }
@@ -95,11 +99,6 @@ void BYTE1_SRAM::setAddressLines(int address)
     for (int pin = _msbAddress; pin <= _lsbAddress; pin += 2)
     {
         int bitState = bitRead(address, count);
-        Serial.println("set address pin: ");
-        Serial.print(pin);
-        Serial.print(" :state:  ");
-        Serial.print(bitState);
-        Serial.println("");
         digitalWrite(pin, bitState);
         count = count - 1;
     }
@@ -112,11 +111,6 @@ void BYTE1_SRAM::setDataLines(int dataToWrite)
     for (int pin = _msbData; pin <= _lsbData; pin += 2)
     {
         int bitState = bitRead(dataToWrite, count);
-        Serial.println("set data pin: ");
-        Serial.print(pin);
-        Serial.print(" :state:  ");
-        Serial.print(bitState);
-        Serial.println("");
         digitalWrite(pin, bitState);
         count = count - 1;
     }
@@ -124,21 +118,22 @@ void BYTE1_SRAM::setDataLines(int dataToWrite)
 
 void BYTE1_SRAM::writeData(int address, int data)
 {
-    digitalWrite(runmodePin, LOW);
-    delayMicroseconds(10);
 
     setAddressLines(address);
     setDataLines(data);
+    //assert that we are under control
+    digitalWrite(runmodePin, LOW);
+
     delayMicroseconds(5);
     //toggle the write enable low then HIGH
     digitalWrite(writeEnablePin, LOW);
     delayMicroseconds(5);
     digitalWrite(writeEnablePin, HIGH);
     delayMicroseconds(5);
-
-    digitalWrite(runmodePin, HIGH);
-    delayMicroseconds(10);
-
-    Serial.println("******************");
-    Serial.println("WRITE COMPLETE");
+    if (_debug)
+    {
+        Serial.println("******************");
+        Serial.println("WRITE COMPLETE");
+        Serial.println(data);
+    }
 }

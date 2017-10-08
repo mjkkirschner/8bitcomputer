@@ -31,10 +31,10 @@ Button runModeButton(ClOCK_RUNMODE_BUTTON, false, true, DEBOUNCE_MS); //Declare 
 Button clockPulseButton(CLOCKPULSE_BUTTON, false, true, DEBOUNCE_MS); //Declare the button
 Button writeRAMButton(WRITE_TO_SRAM_BUTTON, false, true, DEBOUNCE_MS);
 byte PROGRAM_TABLE[255];
-BYTE1_SRAM ramWriter = BYTE1_SRAM(RAM_ADDR_MSB,
+BYTE1_SRAM  ramWriter(RAM_ADDR_MSB,
                RAM_ADDR_LSB,
                RAM_DATA_MSB,
-               RAM_DATA_LSB, RUN_MODE_SIGNAL, PROGRAMMER_WRITE_ENABLE);
+               RAM_DATA_LSB, RUN_MODE_SIGNAL, PROGRAMMER_WRITE_ENABLE,true);
 
 enum RUNMODE
 {
@@ -60,7 +60,7 @@ void setup(void)
     pinMode(RUNMODE_AUTO_LED, OUTPUT);
     digitalWrite(CLOCKSIGNAL, LOW);
     digitalWrite(RUNMODE_AUTO_LED, HIGH);
-
+    Serial.begin(9600);
     //create a sram writer
 
     //setup some test data for the programTable
@@ -87,6 +87,7 @@ void loop(void)
 
     runModeButton.read();
     clockPulseButton.read();
+    writeRAMButton.read();
 
     if (runModeButton.wasReleased())
     {
@@ -115,7 +116,7 @@ void loop(void)
     else
     {
         //the runmode was manual so lets just wait for a trigger and trigger a pulse then
-        if (clockPulseButton.wasPressed())
+        if (clockPulseButton.isPressed())
         {
             digitalWrite(CLOCKSIGNAL, HIGH);
         }
@@ -126,19 +127,14 @@ void loop(void)
         //if the runMode is manual and the write button is pressed
         //then initiate a write from arduino memory
         if (writeRAMButton.wasReleased())
-        {   
+        {  
             //write data to the RAM
             for(int i = 0; i< 255;i++){
                 byte data = PROGRAM_TABLE[i];
                 ramWriter.writeData(i,data);
             }
-
-            //then set the address lines to those values
-            //again so we can see the output lights...
-            for(int i = 0; i< 255;i++){
-                ramWriter.setAddressLines(i);
-                ramWriter.readData();
-            }
+            //put the 8bit computer back in contorl
+            digitalWrite(RUN_MODE_SIGNAL, HIGH);
         }
     }
 }
