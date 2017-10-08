@@ -3,8 +3,8 @@
 #include <Button.h> //https://github.com/JChristensen/Button
 #include <sramWriter.h>
 
-#define RUNMODE_BUTTON 2    //Connect a tactile button switch (or something similar)
-#define CLOCKPULSE_BUTTON 3 //Connect a tactile button switch (or something similar)
+#define ClOCK_RUNMODE_BUTTON 2 //Connect a tactile button switch (or something similar)
+#define CLOCKPULSE_BUTTON 3    //Connect a tactile button switch (or something similar)
 
 #define RUNMODE_AUTO_LED 4
 #define RUNMODE_MANUAL_LED 7
@@ -14,8 +14,27 @@
 
 #define DEBOUNCE_MS 20 //A debounce time of 20 milliseconds usually works well for tactile button switches.
 
-Button runModeButton(RUNMODE_BUTTON, false, true, DEBOUNCE_MS);       //Declare the button
+#define PROGRAMMER_WRITE_ENABLE 31
+#define RUN_MODE_SIGNAL 33
+
+#define RAM_ADDR_MSB 22
+#define RAM_ADDR_LSB 36
+
+#define RAM_DATA_MSB 38
+#define RAM_DATA_LSB 52
+
+//when this button is pressed we will take control of the ram
+//and write to it some selected array or table.
+#define WRITE_TO_SRAM_BUTTON 35
+
+Button runModeButton(ClOCK_RUNMODE_BUTTON, false, true, DEBOUNCE_MS); //Declare the button
 Button clockPulseButton(CLOCKPULSE_BUTTON, false, true, DEBOUNCE_MS); //Declare the button
+Button writeRAMButton(WRITE_TO_SRAM_BUTTON, false, true, DEBOUNCE_MS);
+byte PROGRAM_TABLE[255];
+BYTE1_SRAM ramWriter = BYTE1_SRAM(RAM_ADDR_MSB,
+               RAM_ADDR_LSB,
+               RAM_DATA_MSB,
+               RAM_DATA_LSB, RUN_MODE_SIGNAL, PROGRAMMER_WRITE_ENABLE);
 
 enum RUNMODE
 {
@@ -24,7 +43,15 @@ enum RUNMODE
 };
 
 RUNMODE runMode = AUTO; //A variable that keeps the current LED status
-int clockspeed = 0; 
+int clockspeed = 0;
+
+void generateProgramData(byte *p_array)
+{
+    for (int i = 0; i < 255; i++)
+    {
+        p_array[i] = i;
+    }
+}
 
 void setup(void)
 {
@@ -33,6 +60,11 @@ void setup(void)
     pinMode(RUNMODE_AUTO_LED, OUTPUT);
     digitalWrite(CLOCKSIGNAL, LOW);
     digitalWrite(RUNMODE_AUTO_LED, HIGH);
+
+    //create a sram writer
+
+    //setup some test data for the programTable
+    generateProgramData(PROGRAM_TABLE);
 }
 
 void SetLedsBasedOnRunMode(RUNMODE runMode)
@@ -51,7 +83,7 @@ void SetLedsBasedOnRunMode(RUNMODE runMode)
 
 void loop(void)
 {
-    clockspeed = analogRead(CLOCK_SPEED_IN); 
+    clockspeed = analogRead(CLOCK_SPEED_IN);
 
     runModeButton.read();
     clockPulseButton.read();
@@ -73,7 +105,7 @@ void loop(void)
     //now if we are in auto mode clock the clock pin
     if (runMode == AUTO)
     {
-        int newclockMS = map(clockspeed,0,1024,100,1000);
+        int newclockMS = map(clockspeed, 0, 1024, 100, 1000);
         digitalWrite(CLOCKSIGNAL, HIGH);
         //TODO tie this time to the clock speed pin
         delay(newclockMS);
@@ -83,12 +115,30 @@ void loop(void)
     else
     {
         //the runmode was manual so lets just wait for a trigger and trigger a pulse then
-        if (clockPulseButton.isPressed())
+        if (clockPulseButton.wasPressed())
         {
             digitalWrite(CLOCKSIGNAL, HIGH);
         }
-        else{
+        else
+        {
             digitalWrite(CLOCKSIGNAL, LOW);
+        }
+        //if the runMode is manual and the write button is pressed
+        //then initiate a write from arduino memory
+        if (writeRAMButton.wasReleased())
+        {   
+            //write data to the RAM
+            for(int i = 0; i< 255;i++){
+                byte data = PROGRAM_TABLE[i];
+                ramWriter.writeData(i,data);
+            }
+
+            //then set the address lines to those values
+            //again so we can see the output lights...
+            for(int i = 0; i< 255;i++){
+                ramWriter.setAddressLines(i);
+                ramWriter.readData();
+            }
         }
     }
 }

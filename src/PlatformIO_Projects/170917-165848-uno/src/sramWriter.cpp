@@ -18,7 +18,10 @@ BYTE1_SRAM::BYTE1_SRAM(uint8_t MSB_ADDRESS_PIN,
     pinMode(runmodePin, OUTPUT);
     pinMode(writeEnablePin, OUTPUT);
 
-    digitalWrite(runmodePin, LOW);
+
+    //lets set the runMode to HIGH by default, this should put the
+    //computer in control, then we'll only enable it during operations.
+    digitalWrite(runmodePin, HIGH);
     //active low so this puts the chip into read mode.
     digitalWrite(writeEnablePin, HIGH);
 
@@ -44,6 +47,9 @@ BYTE1_SRAM::BYTE1_SRAM(uint8_t MSB_ADDRESS_PIN,
  */
 byte BYTE1_SRAM::readData()
 {
+    digitalWrite(runmodePin, LOW);
+    digitalWrite(writeEnablePin, HIGH);
+    delayMicroseconds(10);
     byte data = 0;
     for (int pin = _msbData; pin <= _lsbData; pin += 2)
     {
@@ -53,6 +59,8 @@ byte BYTE1_SRAM::readData()
         Serial.println(digitalRead(pin));
         data = (data << 1) + digitalRead(pin);
     }
+    digitalWrite(runmodePin, HIGH);
+    delayMicroseconds(10);
     return data;
 }
 
@@ -116,6 +124,9 @@ void BYTE1_SRAM::setDataLines(int dataToWrite)
 
 void BYTE1_SRAM::writeData(int address, int data)
 {
+    digitalWrite(runmodePin, LOW);
+    delayMicroseconds(10);
+
     setAddressLines(address);
     setDataLines(data);
     delayMicroseconds(5);
@@ -124,6 +135,9 @@ void BYTE1_SRAM::writeData(int address, int data)
     delayMicroseconds(5);
     digitalWrite(writeEnablePin, HIGH);
     delayMicroseconds(5);
+
+    digitalWrite(runmodePin, HIGH);
+    delayMicroseconds(10);
 
     Serial.println("******************");
     Serial.println("WRITE COMPLETE");
