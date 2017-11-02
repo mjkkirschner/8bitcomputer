@@ -23,6 +23,8 @@
 #define RAM_DATA_MSB 38
 #define RAM_DATA_LSB 52
 
+#define HALT_PIN 9
+
 //when this button is pressed we will take control of the ram
 //and write to it some selected array or table.
 #define WRITE_TO_SRAM_BUTTON 35
@@ -88,6 +90,14 @@ void loop(void)
     runModeButton.read();
     clockPulseButton.read();
     writeRAMButton.read();
+   
+    //if we are halted - drop the clock low,
+    //and break;
+
+    if(digitalRead(HALT_PIN) == HIGH){
+        digitalWrite(CLOCKSIGNAL, LOW);        
+        return;
+    }
 
     if (runModeButton.wasReleased())
     {
@@ -108,7 +118,6 @@ void loop(void)
     {
         int newclockMS = map(clockspeed, 0, 1024, 100, 1000);
         digitalWrite(CLOCKSIGNAL, HIGH);
-        //TODO tie this time to the clock speed pin
         delay(newclockMS);
         digitalWrite(CLOCKSIGNAL, LOW);
         delay(newclockMS);
