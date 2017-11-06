@@ -33,10 +33,10 @@ Button runModeButton(ClOCK_RUNMODE_BUTTON, false, true, DEBOUNCE_MS); //Declare 
 Button clockPulseButton(CLOCKPULSE_BUTTON, false, true, DEBOUNCE_MS); //Declare the button
 Button writeRAMButton(WRITE_TO_SRAM_BUTTON, false, true, DEBOUNCE_MS);
 byte PROGRAM_TABLE[255];
-BYTE1_SRAM  ramWriter(RAM_ADDR_MSB,
-               RAM_ADDR_LSB,
-               RAM_DATA_MSB,
-               RAM_DATA_LSB, RUN_MODE_SIGNAL, PROGRAMMER_WRITE_ENABLE,true);
+BYTE1_SRAM ramWriter(RAM_ADDR_MSB,
+                     RAM_ADDR_LSB,
+                     RAM_DATA_MSB,
+                     RAM_DATA_LSB, RUN_MODE_SIGNAL, PROGRAMMER_WRITE_ENABLE, true);
 
 enum RUNMODE
 {
@@ -90,16 +90,18 @@ void loop(void)
     runModeButton.read();
     clockPulseButton.read();
     writeRAMButton.read();
-   
-    //if we are halted - drop the clock low,
-    //and break;
 
-    if(digitalRead(HALT_PIN) == HIGH){
-        digitalWrite(CLOCKSIGNAL, LOW);        
-        return;
+    //if we are halted - drop the clock low,
+    //set runmode manual and set the LEDS.
+
+    if (digitalRead(HALT_PIN) == HIGH)
+    {
+        digitalWrite(CLOCKSIGNAL, LOW);
+        runMode = MANUAL;
+        SetLedsBasedOnRunMode(runMode);
     }
 
-    if (runModeButton.wasReleased())
+    else if (runModeButton.wasReleased())
     {
         if (runMode == AUTO)
         {
@@ -136,11 +138,19 @@ void loop(void)
         //if the runMode is manual and the write button is pressed
         //then initiate a write from arduino memory
         if (writeRAMButton.wasReleased())
-        {  
+        {
             //write data to the RAM
-            for(int i = 0; i< 255;i++){
+            for (int i = 0; i < 255; i++)
+            {
                 byte data = PROGRAM_TABLE[i];
-                ramWriter.writeData(i,data);
+                ramWriter.writeData(i, data);
+            }
+
+            //spin through the address's again and lets see what data shows up
+            for (int i = 0; i < 255; i++)
+            {
+                delay(100);
+                ramWriter.setAddressLines(i);
             }
             //put the 8bit computer back in contorl
             digitalWrite(RUN_MODE_SIGNAL, HIGH);
