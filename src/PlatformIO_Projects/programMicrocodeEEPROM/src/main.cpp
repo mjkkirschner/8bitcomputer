@@ -8,11 +8,14 @@
 
 #define SHIFT_CLK A3
 
+#define SHIFT_MODE0 10
+#define SHIFT_MODE1 11
+
 #define EEPROM_WRITE_ENABLE A4
 #define EEPROM_OUT_ENABLE A5
 
 #define EEPROM_A0 2
-#define EEPROM_A7 10
+#define EEPROM_A7 9
 
 #define RAMIN 0b00000000100000000000000000000000
 #define RAMOUT 0b00000000010000000000000000000000
@@ -28,7 +31,7 @@
 #define ALU2 0b00000000000000000001000000000000
 #define ALU3 0b00000000000000000000100000000000
 #define ALU4 0b00000000000000000000010000000000
-#define BIN 0b00000000000000000000001000000000
+#define B_IN 0b00000000000000000000001000000000
 #define BOUT 0b00000000000000000000000100000000
 #define OUTIN 0b00000000000000000000000010000000
 #define HALT 0b00000000000000000000000001000000
@@ -39,26 +42,28 @@
 
 #define ADD ALU1 | ALU4
 #define SUBTRACT ALU2 | ALU3
+
 //TODO these are not updated to the instructions in speadsheet yet.
 uint32_t microCodeData[] = {
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, 0, 0, 0, 0, 0, 0,                                                                                            //0000 NOP
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | AIN | COUNTERENABLE, 0, 0, 0,                       //0001 LOADA
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, AOUT | OUTIN, 0, 0, 0, 0, 0,                                                                                 //0010 OUT
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | BIN | COUNTERENABLE, SUMOUT | AIN | ADD, 0, 0,      //0011 ADD
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | BIN | COUNTERENABLE, SUMOUT | AIN | SUBTRACT, 0, 0, //0100 SUBTRACT
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMIN | AOUT | COUNTERENABLE, 0, 0, 0, 0,                    //0101 STOREA
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | AIN | COUNTERENABLE, 0, 0, 0, 0,                                          //0110 LOADAIMMEDIATE
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | JUMPAEQUALB | JUMPALESSB | JUMPAGREATERB, 0, 0, 0, 0,                     //0111 JUMP
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, COUNTERENABLE, RAMOUT | JUMPAEQUALB, 0, 0, 0,                                      //1000 JUMPIFEQUAL
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, COUNTERENABLE, RAMOUT | JUMPALESSB, 0, 0, 0,                                       //1001 JUMPIFLESS
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, COUNTERENABLE, RAMOUT | JUMPAGREATERB, 0, 0, 0,                                    //1010 JUMPIFGREATER
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | BIN | COUNTERENABLE, 0, 0, 0,                       //1011 LOADB
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | BIN | COUNTERENABLE, 0, 0, 0, 0,                                          //1100 LOADBIMMEDIATE
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMIN | BOUT | COUNTERENABLE, 0, 0, 0, 0,                    //1101 STOREB
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, 0, 0, 0, 0, 0, 0,                                                                                            //1110 NOP
-    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, HALT, 0, 0, 0, 0, 0,                                                                                         //1111 HALT
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, 0, 0, 0, 0, 0, 0,                                                                                             //0000 NOP
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | AIN | COUNTERENABLE, 0, 0, 0,                        //0001 LOADA
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, AOUT | OUTIN, 0, 0, 0, 0, 0,                                                                                  //0010 OUT
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | B_IN | COUNTERENABLE, SUMOUT | AIN | ADD, 0, 0,      //0011 ADD
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | B_IN | COUNTERENABLE, SUMOUT | AIN | SUBTRACT, 0, 0, //0100 SUBTRACT
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMIN | AOUT | COUNTERENABLE, 0, 0, 0, 0,                     //0101 STOREA
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | AIN | COUNTERENABLE, 0, 0, 0, 0,                                           //0110 LOADAIMMEDIATE
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | JUMPAEQUALB | JUMPALESSB | JUMPAGREATERB, 0, 0, 0, 0,                      //0111 JUMP
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, COUNTERENABLE, RAMOUT | JUMPAEQUALB, 0, 0, 0,                                       //1000 JUMPIFEQUAL
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, COUNTERENABLE, RAMOUT | JUMPALESSB, 0, 0, 0,                                        //1001 JUMPIFLESS
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, COUNTERENABLE, RAMOUT | JUMPAGREATERB, 0, 0, 0,                                     //1010 JUMPIFGREATER
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | B_IN | COUNTERENABLE, 0, 0, 0,                       //1011 LOADB
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | B_IN | COUNTERENABLE, 0, 0, 0, 0,                                          //1100 LOADBIMMEDIATE
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMIN | BOUT | COUNTERENABLE, 0, 0, 0, 0,                     //1101 STOREB
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, 0, 0, 0, 0, 0, 0,                                                                                             //1110 NOP
+    MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, HALT, 0, 0, 0, 0, 0,                                                                                          //1111 HALT
 
 };
+
 
 //set Address lines, MSB.
 //ie, EEPROM_A0 is MSB.
@@ -84,14 +89,40 @@ byte *readEEPROM(int address, int dataLength)
 {
   digitalWrite(SHIFT_CLK, LOW);
   //false should put OE low which means read.
-  digitalWrite(EEPROM_OUT_ENABLE, false);
+  digitalWrite(EEPROM_OUT_ENABLE, LOW);
+  digitalWrite(EEPROM_WRITE_ENABLE, HIGH);
   setAddress(address);
+  delay(10);
+
+  //now we need to do two things:
+  //1.load the data into the shift registers in parallel
+  //2.shift it out to the left.
+
+  digitalWrite(SHIFT_MODE0, HIGH);
+  digitalWrite(SHIFT_MODE1, HIGH);
+  delay(1);
+
+  digitalWrite(SHIFT_CLK, HIGH);
+  delay(1);
+
+  //load the data in parallel into the registers.
+  delay(10);
+
+  //put the registers into shift left mode:
+  digitalWrite(SHIFT_MODE0, LOW);
+  digitalWrite(SHIFT_MODE1, HIGH);
+  delay(10);
+
   byte *datas = new byte[3];
-  for (int i = 0; i < dataLength - 1; i++)
+  for (int i = 0; i < dataLength; i++)
   {
     Serial.println("reading a byte from the EEPROM");
+    Serial.println("address");
+    Serial.println(address);
 
     byte data = shiftIn(SHIFT_DATA_IN, SHIFT_CLK, MSBFIRST);
+    Serial.println("data");
+    Serial.println(data);
     datas[i] = data;
   }
   return datas;
@@ -101,28 +132,39 @@ byte *readEEPROM(int address, int dataLength)
 //and write out to the EEPROM
 void writeEEPROM(int address, byte data[], int dataLength)
 {
-  digitalWrite(EEPROM_WRITE_ENABLE, HIGH);
   digitalWrite(EEPROM_OUT_ENABLE, HIGH);
+  digitalWrite(EEPROM_WRITE_ENABLE, HIGH);
   digitalWrite(SHIFT_CLK, LOW);
 
   setAddress(address);
-  int i = 0;
+  delay(10);
+
   byte curData;
   //iterate over each byte in the array and shift it out, iterate
   //backward so we shift the last byte out first.
-  for (i = dataLength - 1, i > -1; i = i - 1;)
+  for (int i = dataLength - 1; i > -1; i = i - 1)
   {
-    Serial.println("write a byte to EEPROM");
+    Serial.println("shift out a byte to EEPROM");
+    Serial.println("address");
+    Serial.println(address);
+    Serial.println("data");
     curData = data[i];
+    Serial.println(curData);
+
+    digitalWrite(SHIFT_CLK, LOW);
     shiftOut(SHIFT_DATA_OUT, SHIFT_CLK, LSBFIRST, curData);
 
-    //pulsing the write line low then high will write to byte to the eeprom.
-    delayMicroseconds(1);
-    digitalWrite(EEPROM_WRITE_ENABLE, LOW);
-    delayMicroseconds(1);
-    digitalWrite(EEPROM_WRITE_ENABLE, HIGH);
-    delay(5);
+    delay(10);
   }
+  //pulsing the write line low then high will write to byte to the eeprom.
+  Serial.println("write out a byte to EEPROM");
+  Serial.println(address);
+
+  delay(15);
+  digitalWrite(EEPROM_WRITE_ENABLE, LOW);
+  delayMicroseconds(2);
+  digitalWrite(EEPROM_WRITE_ENABLE, HIGH);
+  delay(15);
 }
 
 /**void printContents()
@@ -159,7 +201,10 @@ void setup()
   pinMode(SHIFT_DATA_OUT, OUTPUT);
   pinMode(SHIFT_DATA_IN, INPUT);
   pinMode(SHIFT_CLK, OUTPUT);
+  pinMode(SHIFT_MODE0, OUTPUT);
+  pinMode(SHIFT_MODE1, OUTPUT);
 
+  digitalWrite(EEPROM_OUT_ENABLE, HIGH);
   pinMode(EEPROM_OUT_ENABLE, OUTPUT);
   digitalWrite(EEPROM_WRITE_ENABLE, HIGH);
   pinMode(EEPROM_WRITE_ENABLE, OUTPUT);
@@ -170,13 +215,17 @@ void setup()
     pinMode(pin, OUTPUT);
   }
 
-  Serial.begin(57600);
+  Serial.begin(9600);
 
   Serial.print("Programming EEPROM");
-  byte originalData[256][3];
-  byte readData[256][3];
+  byte originalData[131][3];
+  byte readData[131][3];
 
-  for (int address = 0; address < sizeof(microCodeData) / sizeof(microCodeData[0]); address += 1)
+  //put the registers into shift right mode:
+  digitalWrite(SHIFT_MODE0, HIGH);
+  digitalWrite(SHIFT_MODE1, LOW);
+
+  for (uint32_t address = 0; address < sizeof(microCodeData) / sizeof(microCodeData[0]); address += 1)
   {
     byte microInstruction[3] = {byte(microCodeData[address] >> 16), byte(microCodeData[address] >> 8), byte(microCodeData[address])};
     writeEEPROM(address, microInstruction, 3);
@@ -190,18 +239,20 @@ void setup()
   //now that we have written all data in the microcode array to the eeprom - we want to read it back
   //and make sure it's the equal to the data we thought we wrote.
 
-  for (int address = 0; address < sizeof(microCodeData) / sizeof(microCodeData[0]); address += 1)
+  for (uint32_t address = 0; address < sizeof(microCodeData) / sizeof(microCodeData[0]); address += 1)
   {
     byte *currentData = readEEPROM(address, 3);
     readData[address][0] = currentData[0];
     readData[address][1] = currentData[1];
     readData[address][2] = currentData[2];
+    delete currentData;
   }
   //now we have built up our data... lets compare them.
 
-  for (int address = 0; address < 256; address += 1)
+  int count = 0;
+  for (int address = 0; address < 130; address += 1)
   {
-    for (int subByteAddress = 0; address < 3; subByteAddress += 1)
+    for (int subByteAddress = 0; subByteAddress < 3; subByteAddress += 1)
     {
       byte originalByte = originalData[address][subByteAddress];
       byte readByte = readData[address][subByteAddress];
@@ -213,12 +264,22 @@ void setup()
       else
       {
         Serial.println("BYTES ARE NOT THE SAME - SOMETHING IS WRONG!!!!");
-        char buf[80];
-        sprintf(buf, "%u, is not the same as %u", originalByte, readByte);
-        Serial.println(buf);
+        Serial.println("address");
+        Serial.println(address);
+        Serial.println("byte");
+        Serial.println(subByteAddress);
+        Serial.println("original");
+        Serial.println(originalByte);
+
+        Serial.println("actual");
+
+        Serial.println(readByte);
+        count = count + 1;
       }
     }
   }
+  Serial.println("There were some differences:");
+  Serial.println(count);
 }
 
 void loop()
